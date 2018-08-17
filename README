@@ -1,0 +1,79 @@
+What?
+=====
+
+Yieldifier is a tool for running Python functions step-by-step (line-by-line,
+statement-by-statement, bytecode-by-bytecode - you get the point). It works by
+creating a modified version of the function, with yield statements inserted
+between steps. (Disclaimer for the inevitable nitpickers: yield is an expression
+(since Python 2.5, anyway), but I use the term "yield statement" to refer to
+expression statements with yield as the sole expression)
+
+Some of you are no doubt wondering, "Hasn't this guy ever heard of a debugger?",
+but where a debugger can step through a single body of code, with yieldifier you
+can step through multiple bodies of code simultaneously, and interleave their
+execution as you wish. I'd wager that most people (if any?) that end up reading
+this already have a use case in mind (otherwise, how on earth did you end up
+here?), but for those who are wondering, "What on earth would you use this
+for?!", skip to the end, where I'll explain what I, personally, used this for.
+
+Yieldifier can modify either the AST (Abstract Syntax Tree) or the bytecode of a
+function. The AST yieldifier needs to have the function's source code available,
+but is otherwise simpler. The bytecode yieldifier only needs access to the
+function, but is a lot more complex and fiddly, only works with cpython, and has
+to be modified to support each Python version individually - because of that, it
+only supports Python 3.4, at least for now.
+
+The yieldifiers are used as follows:
+
+modified_func = yieldifier.ast_yieldify(path_to_target_module, 'target_func')
+modified_func = yieldifier.bytecode_yieldify(target_func)
+
+Why?
+====
+
+A little while ago, for a project of mine, I wrote a class whose correct
+operation was absolutely critical. Obviously, I wrote tests for it, but apart
+from testing each method by itself, I also wanted to test that all the methods
+work correctly together no matter which sequence you call them in.
+
+To tackle this, I generated a de Bruijn sequence of all the methods (with more
+than one entry for some methods, to essentially account for special cases), and
+made a test function that calls the methods in that order. I still had to
+manually fill in arguments that made sense, and figure out the correct return
+values for that sequence of method calls with those arguments, but the de Bruijn
+sequence guaranteed that all possible method call pairings got tested, in the
+smallest number of calls possible (which meant less manual work for me).
+
+Now I had a function with one method call (and assertion that the return value
+is correct) per line, and was left with the next problem. The class wrapped a
+stateful resource, and was supposed to guarantee that even if you had two
+instances of the class that wrapped the same resource, operations on one of the
+instances would never affect the other one. Of course, this too, needed to be
+tested.
+
+How do you test something like that? Well, I thought running the de Bruijn test
+case for two instances, and interleaving their execution would be a good start.
+That first requires being able to run the functions line-by-line. My first
+thought was that adding a yield statement between every line would let me do
+this, but I didn't really want to do it manually. Since a quick Googling didn't
+yield (pun intended) any existing solutions - or better ideas - the first, hacky
+version of the AST yieldifier was born.
+
+Since I couldn't find any existing solutions, and the only related question I
+could find on Stack Overflow wasn't really a good fit, since it didn't specify
+that the solution needs to work on multiple functions simultaneously (which
+caused most of the answers to recommend a debugger), and because of additional
+restrictions in the question, I thought I might as well write a self-answered
+question about this.
+
+For the purposes of writing that answer, I cleaned up the code I had written,
+which became the AST yieldifier presented here. Since I also mentioned that
+modifying the bytecode is another way to achieve the same goal - and because I'm
+apparently a masochist, with nothing better to do - I also ended up writing the
+bytecode yieldifier.
+
+A more detailed look into how both "yieldifiers" work is therefore available in
+that Stack Overflow answer, at:
+
+https://stackoverflow.com/questions/51902100/executing-python-functions-one-line-at-a-time/51902101#51902101
+
