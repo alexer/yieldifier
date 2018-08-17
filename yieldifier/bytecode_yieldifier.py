@@ -1,15 +1,5 @@
 import dis
 import types
-import math
-
-def target(n):
-	print('line 1')
-	print('line 2')
-	for i in range(3):
-		print('line 4')
-		print('line 5')
-	print('line 6')
-	math.pi / n
 
 def calc_insn_size(insn):
 	"""Calculate how many bytes the bytecode for the instruction will take"""
@@ -174,7 +164,9 @@ def yieldify(func):
 	return new_func
 
 if __name__ == '__main__':
-	func = yieldify(target)
+	from . import target
+
+	func = yieldify(target.target)
 
 	for i in func(0):
 		print('yield', i)

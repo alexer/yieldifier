@@ -1,14 +1,4 @@
 import ast
-import math
-
-def target(n):
-	print('line 1')
-	print('line 2')
-	for i in range(3):
-		print('line 4')
-		print('line 5')
-	print('line 6')
-	math.pi / n
 
 def getmaxloc(node):
 	loc = None
@@ -50,7 +40,9 @@ def yieldify(path, func_name):
 	return env[func_name]
 
 if __name__ == '__main__':
-	func = yieldify(__file__, 'target')
+	from . import target
+
+	func = yieldify(target.__file__, 'target')
 
 	for i in func(0):
 		print('yield', i)
