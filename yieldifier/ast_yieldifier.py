@@ -23,7 +23,7 @@ class Yieldifier(ast.NodeTransformer):
 		else:
 			return node
 
-def yieldify(path, func_name):
+def yieldify(path, func_name, explicit_env=None):
 	with open(path, 'rb') as f:
 		source = f.read()
 
@@ -34,7 +34,12 @@ def yieldify(path, func_name):
 	Yieldifier().visit(func_tree)
 	ast.fix_missing_locations(func_tree)
 
-	env = {}
+	if explicit_env is None:
+		env = {}
+	else:
+		mod_tree = ast.Module(body=[func_tree])
+		env = explicit_env
+
 	exec(compile(mod_tree, path, 'exec'), env)
 
 	return env[func_name]
